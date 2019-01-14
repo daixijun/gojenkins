@@ -96,9 +96,7 @@ func TestCreateSSHCredentialsFullFlow(t *testing.T) {
 
 func TestMain(m *testing.M) {
 	//setup
-	jenkins := NewJenkins(nil, "http://localhost:8080", "admin", "admin")
-	jenkins.Init()
-
+	jenkins, _ := NewJenkins("http://localhost:8080", "admin", "admin")
 	cm = CredentialsManager{J: jenkins}
 
 	//execute tests
