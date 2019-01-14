@@ -12,7 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package gojenkins
+package jenkins
 
 type Executor struct {
 	Raw     *ExecutorResponse

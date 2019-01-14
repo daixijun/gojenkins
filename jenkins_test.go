@@ -1,4 +1,4 @@
-package gojenkins
+package jenkins
 
 import (
 	"io/ioutil"
@@ -15,8 +15,7 @@ var (
 )
 
 func TestInit(t *testing.T) {
-	jenkins = CreateJenkins(nil, "http://localhost:8080", "admin", "admin")
-	_, err := jenkins.Init()
+	_, err := NewJenkins("http://localhost:8080", "admin", "admin")
 	assert.Nil(t, err, "Jenkins Initialization should not fail")
 }
 

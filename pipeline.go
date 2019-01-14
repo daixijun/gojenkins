@@ -15,10 +15,9 @@
 // this file implements the pipeline-stage-view API:
 // https://github.com/jenkinsci/pipeline-stage-view-plugin/tree/master/rest-api
 
-package gojenkins
+package jenkins
 
 import (
-	"fmt"
 	"regexp"
 )
 
@@ -147,8 +146,12 @@ func (pr *PipelineRun) GetArtifacts() (artifacts []PipelineArtifact, err error) 
 
 func (pr *PipelineRun) GetNode(id string) (node *PipelineNode, err error) {
 	node = new(PipelineNode)
-	href := pr.Base + "/execution/node/" + id + "/wfapi/describe"
+	nodeBase := pr.Base + "/execution/node/" + id
+	href := nodeBase + "/wfapi/describe"
 	_, err = pr.Job.Jenkins.Requester.GetJSON(href, node, nil)
+	node.Base = nodeBase
+	node.Run = pr
+
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +162,7 @@ func (pr *PipelineRun) GetNode(id string) (node *PipelineNode, err error) {
 func (node *PipelineNode) GetLog() (log *PipelineNodeLog, err error) {
 	log = new(PipelineNodeLog)
 	href := node.Base + "/wfapi/log"
-	fmt.Println(href)
+	//fmt.Println(href)
 	_, err = node.Run.Job.Jenkins.Requester.GetJSON(href, log, nil)
 	if err != nil {
 		return nil, err

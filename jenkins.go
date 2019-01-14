@@ -13,7 +13,7 @@
 // under the License.
 
 // Gojenkins is a Jenkins Client in Go, that exposes the jenkins REST api in a more developer friendly way.
-package gojenkins
+package jenkins
 
 import (
 	"errors"
@@ -44,27 +44,6 @@ var (
 	Warning *log.Logger
 	Error   *log.Logger
 )
-
-// Init Method. Should be called after creating a Jenkins Instance.
-// e.g jenkins,err := CreateJenkins("url").Init()
-// HTTP Client is set here, Connection to jenkins is tested here.
-func (j *Jenkins) Init() (*Jenkins, error) {
-	j.initLoggers()
-
-	// Check Connection
-	j.Raw = new(ExecutorResponse)
-	rsp, err := j.Requester.GetJSON("/", j.Raw, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	j.Version = rsp.Header.Get("X-Jenkins")
-	if j.Raw == nil {
-		return nil, errors.New("Connection Failed, Please verify that the host and credentials are correct.")
-	}
-
-	return j, nil
-}
 
 func (j *Jenkins) initLoggers() {
 	Info = log.New(os.Stdout,
@@ -517,12 +496,12 @@ func (j *Jenkins) GetAllViews() ([]*View, error) {
 // First Parameter - name of the View
 // Second parameter - Type
 // Possible Types:
-// 		gojenkins.LIST_VIEW
-// 		gojenkins.NESTED_VIEW
-// 		gojenkins.MY_VIEW
-// 		gojenkins.DASHBOARD_VIEW
-// 		gojenkins.PIPELINE_VIEW
-// Example: jenkins.CreateView("newView",gojenkins.LIST_VIEW)
+// 		jenkins.LIST_VIEW
+// 		jenkins.NESTED_VIEW
+// 		jenkins.MY_VIEW
+// 		jenkins.DASHBOARD_VIEW
+// 		jenkins.PIPELINE_VIEW
+// Example: jenkins.CreateView("newView",jenkins.LIST_VIEW)
 func (j *Jenkins) CreateView(name string, viewType string) (*View, error) {
 	view := &View{Jenkins: j, Raw: new(ViewResponse), Base: "/view/" + name}
 	endpoint := "/createView"
@@ -558,18 +537,32 @@ func (j *Jenkins) Poll() (int, error) {
 // Creates a new Jenkins Instance
 // Optional parameters are: client, username, password or token
 // After creating an instance call init method.
-func CreateJenkins(client *http.Client, base string, auth ...interface{}) *Jenkins {
-	j := &Jenkins{}
-	if strings.HasSuffix(base, "/") {
-		base = base[:len(base)-1]
+func NewJenkins(server, username, token string) (jenkins *Jenkins, err error) {
+
+	if strings.HasSuffix(server, "/") {
+		server = server[:len(server)-1]
 	}
-	j.Server = base
-	j.Requester = &Requester{Base: base, SslVerify: true, Client: client}
-	if j.Requester.Client == nil {
-		j.Requester.Client = http.DefaultClient
+	jenkins = &Jenkins{
+		Server:server,
+		Requester:&Requester{Base: server, SslVerify: true, Client: http.DefaultClient},
 	}
-	if len(auth) == 2 {
-		j.Requester.BasicAuth = &BasicAuth{Username: auth[0].(string), Password: auth[1].(string)}
+	if username != "" && token != "" {
+		jenkins.Requester.BasicAuth = &BasicAuth{Username: username, Password: token}
 	}
-	return j
+
+	jenkins.initLoggers()
+
+	// Check Connection
+	jenkins.Raw = new(ExecutorResponse)
+	rsp, err := jenkins.Requester.GetJSON("/", jenkins.Raw, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	jenkins.Version = rsp.Header.Get("X-Jenkins")
+	if jenkins.Raw == nil {
+		return nil, errors.New("Connection Failed, Please verify that the host and credentials are correct.")
+	}
+
+	return jenkins, nil
 }

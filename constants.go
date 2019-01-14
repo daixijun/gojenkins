@@ -1,4 +1,4 @@
-package gojenkins
+package jenkins
 
 const (
 	STATUS_FAIL           = "FAIL"

@@ -12,7 +12,7 @@
 // License for the specific language governing permissions and limitations
 // under the License.
 
-package gojenkins
+package jenkins
 
 import "errors"
 
@@ -161,7 +161,7 @@ func (n *Node) ToggleTemporarilyOffline(options ...interface{}) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	qr := map[string]string{"offlineMessage": "requested from gojenkins"}
+	qr := map[string]string{"offlineMessage": "requested from jenkins"}
 	if len(options) > 0 {
 		qr["offlineMessage"] = options[0].(string)
 	}

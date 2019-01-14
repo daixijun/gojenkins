@@ -1,8 +1,8 @@
 # Jenkins API Client for Go
 
-[![GoDoc](https://godoc.org/github.com/bndr/gojenkins?status.svg)](https://godoc.org/github.com/bndr/gojenkins)
-[![Go Report Cart](https://goreportcard.com/badge/github.com/bndr/gojenkins)](https://goreportcard.com/report/github.com/bndr/gojenkins)
-[![Build Status](https://travis-ci.org/bndr/gojenkins.svg?branch=master)](https://travis-ci.org/bndr/gojenkins)
+[![GoDoc](https://godoc.org/github.com/daixijun/jenkins?status.svg)](https://godoc.org/github.com/daixijun/jenkins)
+[![Go Report Cart](https://goreportcard.com/badge/github.com/daixijun/jenkins)](https://goreportcard.com/report/github.com/daixijun/jenkins)
+[![Build Status](https://travis-ci.org/daixijun/jenkins.svg?branch=master)](https://travis-ci.org/daixijun/jenkins)
 
 ## About
 
@@ -20,26 +20,24 @@ These are some of the features that are currently implemented:
 
 ## Installation
 
-    go get github.com/bndr/gojenkins
+    go get github.com/daixijun/jenkins
 
 ## Usage
 
 ```go
+import "github.com/daixijun/jenkins"
 
-import "github.com/bndr/gojenkins"
-
-jenkins := gojenkins.CreateJenkins(nil, "http://localhost:8080/", "admin", "admin")
+j, err := jenkins.NewJenkins("http://localhost:8080/", "admin", "admin")
 // Provide CA certificate if server is using self-signed certificate
 // caCert, _ := ioutil.ReadFile("/tmp/ca.crt")
-// jenkins.Requester.CACert = caCert
-_, err := jenkins.Init()
+// j.Requester.CACert = caCert
 
 
 if err != nil {
   panic("Something Went Wrong")
 }
 
-build, err := jenkins.GetJob("job_name")
+build, err := j.GetJob("job_name")
 if err != nil {
   panic("Job Does Not Exist")
 }
@@ -51,7 +49,7 @@ if err != nil {
 
 duration := lastSuccessBuild.GetDuration()
 
-job, err := jenkins.GetJob("jobname")
+job, err := j.GetJob("jobname")
 
 if err != nil {
   panic("Job does not exist")
@@ -82,37 +80,28 @@ j.CreateJob(configString, "someNewJobsName")
 
 ```
 
-API Reference: https://godoc.org/github.com/bndr/gojenkins
+API Reference: https://godoc.org/github.com/daixijun/jenkins
 
 ## Examples
 
 For all of the examples below first create a jenkins object
 ```go
-import "github.com/bndr/gojenkins"
+import "github.com/daixijun/jenkins"
 
-jenkins, _ := gojenkins.CreateJenkins(nil, "http://localhost:8080/", "admin", "admin").Init()
+j, _ := jenkins.NewJenkins("http://localhost:8080/", "admin", "admin")
 ```
 
 or if you don't need authentication:
 
 ```go
-jenkins, _ := gojenkins.CreateJenkins(nil, "http://localhost:8080/").Init()
+j, _ := jenkins.NewJenkins("http://localhost:8080/", "", "")
 ```
 
-you can also specify your own `http.Client` (for instance, providing your own SSL configurations):
-
-```go
-client := &http.Client{ ... }
-jenkins, := gojenkins.CreateJenkins(client, "http://localhost:8080/").Init()
-```
-
-By default, `gojenkins` will use the `http.DefaultClient` if none is passed into the `CreateJenkins()`
-function.
 
 ### Check Status of all nodes
 
 ```go
-nodes := jenkins.GetAllNodes()
+nodes := j.GetAllNodes()
 
 for _, node := range nodes {
 
@@ -129,7 +118,7 @@ for _, node := range nodes {
 
 ```go
 jobName := "someJob"
-builds, err := jenkins.GetAllBuildIds(jobName)
+builds, err := j.GetAllBuildIds(jobName)
 
 if err != nil {
   panic(err)
@@ -137,7 +126,7 @@ if err != nil {
 
 for _, build := range builds {
   buildId := build.Number
-  data, err := jenkins.GetBuild(jobName, buildId)
+  data, err := j.GetBuild(jobName, buildId)
 
   if err != nil {
     panic(err)
@@ -149,7 +138,7 @@ for _, build := range builds {
 }
 
 // Get Last Successful/Failed/Stable Build for a Job
-job, err := jenkins.GetJob("someJob")
+job, err := j.GetJob("someJob")
 
 if err != nil {
   panic(err)
@@ -176,7 +165,7 @@ for _, task := range tasks {
 
 ```go
 
-view, err := jenkins.CreateView("test_view", gojenkins.LIST_VIEW)
+view, err := j.CreateView("test_view", jenkins.LIST_VIEW)
 
 if err != nil {
   panic(err)
@@ -195,13 +184,13 @@ if status != nil {
 ```go
 
 // Create parent folder
-pFolder, err := jenkins.CreateFolder("parentFolder")
+pFolder, err := j.CreateFolder("parentFolder")
 if err != nil {
   panic(err)
 }
 
 // Create child folder in parent folder
-cFolder, err := jenkins.CreateFolder("childFolder", pFolder.GetName())
+cFolder, err := j.CreateFolder("childFolder", pFolder.GetName())
 if err != nil {
   panic(err)
 }
@@ -225,7 +214,7 @@ configString := `<?xml version='1.0' encoding='UTF-8'?>
   <buildWrappers/>
 </project>`
 
-job, err := jenkins.CreateJobInFolder(configString, "jobInFolder", pFolder.GetName(), cFolder.GetName())
+job, err := j.CreateJobInFolder(configString, "jobInFolder", pFolder.GetName(), cFolder.GetName())
 if err != nil {
   panic(err)
 }
@@ -240,7 +229,7 @@ if job != nil {
 
 ```go
 
-job, _ := jenkins.GetJob("job")
+job, _ := j.GetJob("job")
 build, _ := job.GetBuild(1)
 artifacts := build.GetArtifacts()
 
@@ -254,7 +243,7 @@ for _, a := range artifacts {
 
 ```go
 
-job, _ := jenkins.GetJob("job")
+job, _ := j.GetJob("job")
 job.Poll()
 
 build, _ := job.getBuild(1)
